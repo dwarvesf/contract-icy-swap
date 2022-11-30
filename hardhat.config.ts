@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
       accounts: [process.env.GOERLI_PRIVATE_KEY ?? ""],
     },
     polygon: {
-      url: "https://rpc.ftm.tools",
+      url: "https://polygon-rpc.com",
       accounts: [process.env.POLYGON_PRIVATE_KEY ?? ""],
     },
   },

@@ -4,7 +4,7 @@ async function main() {
   console.log(`deploying contract...`);
   const usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
   const icy = "0x8D57d71B02d71e1e449a0E459DE40473Eb8f4a90";
-  const icyToUsdcConversionRate = ethers.utils.parseUnits("2", 6); // 1 icy = 2 usdc, decimal = 6
+  const icyToUsdcConversionRate = ethers.utils.parseUnits("1.5", 6); // 1 icy = 1.5 usdc, decimal = 6
   const IcySwap = await ethers.getContractFactory("IcySwap");
   const icySwap = await IcySwap.deploy(usdc, icy, icyToUsdcConversionRate);
   await icySwap.deployed();

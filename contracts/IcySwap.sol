@@ -67,6 +67,14 @@ contract IcySwap is Ownable, Pausable, ReentrancyGuard {
         emit ConversionRateChanged(_conversionRate);
     }
 
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
     // Internal methods
     function _swap(
         IERC20 _fromToken,

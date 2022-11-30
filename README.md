@@ -2,6 +2,9 @@
 
 ## Contracts
 
+- ICYSwap
+  [0x270E4c4a3952E6d231Db85Db1930BD95b4fc50e8](https://polygonscan.com/address/0x270E4c4a3952E6d231Db85Db1930BD95b4fc50e8#readContract)
+
 ## How to run project
 
 1. Install deps with `yarn`
