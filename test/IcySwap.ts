@@ -45,7 +45,7 @@ describe("IcySwap", function () {
 
       expect(await icySwap.icy()).to.equal(icyMock.address);
       expect(await icySwap.usdc()).to.equal(usdcMock.address);
-      expect(await icySwap.icyToUsdcCoversionRate()).to.equal(
+      expect(await icySwap.icyToUsdcConversionRate()).to.equal(
         ethers.utils.parseUnits(icyToUsdcConversionRate, 6)
       );
     });
@@ -54,37 +54,6 @@ describe("IcySwap", function () {
       const { icySwap, owner } = await loadFixture(deployIcySwapFixture);
 
       expect(await icySwap.owner()).to.equal(owner.address);
-    });
-  });
-
-  describe("TopupUsdc", function () {
-    describe("Validations", function () {
-      it("Should revert with the right error if caller is not owner", async function () {
-        const { icySwap, secondAccount } = await loadFixture(
-          deployIcySwapFixture
-        );
-
-        await expect(
-          icySwap.connect(secondAccount).topUpUSDC("100")
-        ).to.be.revertedWith("Ownable: caller is not the owner");
-      });
-    });
-
-    describe("Transfer", function () {
-      it("Should transfer usdc to contract", async function () {
-        const { usdcMock, icySwap } = await loadFixture(deployIcySwapFixture);
-
-        // Top up 1000 USDC
-        const topupUsdcAmount = "1000";
-        await usdcMock.approve(
-          icySwap.address,
-          ethers.utils.parseUnits(topupUsdcAmount, 6)
-        );
-        await icySwap.topUpUSDC(ethers.utils.parseUnits(topupUsdcAmount, 6));
-        expect(await usdcMock.balanceOf(icySwap.address)).to.equal(
-          ethers.utils.parseUnits("1000", 6)
-        );
-      });
     });
   });
 
@@ -105,22 +74,12 @@ describe("IcySwap", function () {
       it("Should update new conversion rate", async function () {
         const { icySwap } = await loadFixture(deployIcySwapFixture);
         await icySwap.setConversionRate("100");
-        expect(await icySwap.icyToUsdcCoversionRate()).to.equal("100");
+        expect(await icySwap.icyToUsdcConversionRate()).to.equal("100");
       });
     });
   });
 
   describe("Swap", function () {
-    describe("Validations", function () {
-      it("Should revert with the right error if send the invalid token", async function () {
-        const { icySwap } = await loadFixture(deployIcySwapFixture);
-
-        await expect(
-          icySwap.swap(ethers.constants.AddressZero, "1000")
-        ).to.be.revertedWith("not allow token");
-      });
-    });
-
     describe("Swap ICY To USDC", function () {
       it("Should transfer the right amount to caller", async function () {
         const {
@@ -139,11 +98,10 @@ describe("IcySwap", function () {
 
         // Top up 1000 USDC
         const topupUsdcAmount = "1000";
-        await usdcMock.approve(
+        await usdcMock.transfer(
           icySwap.address,
           ethers.utils.parseUnits(topupUsdcAmount, 6)
         );
-        await icySwap.topUpUSDC(ethers.utils.parseUnits(topupUsdcAmount, 6));
 
         // Swap icy to get usdc
         const icyAmountIn = "100";
@@ -153,7 +111,7 @@ describe("IcySwap", function () {
           .approve(icySwap.address, ethers.utils.parseEther(icyAmountIn));
         await icySwap
           .connect(secondAccount)
-          .swap(icyMock.address, ethers.utils.parseEther(icyAmountIn));
+          .swap(ethers.utils.parseEther(icyAmountIn));
 
         expect(await usdcMock.balanceOf(secondAccount.address)).to.equal(
           ethers.utils.parseUnits(`${expectedUsdcAmountOut}`, 6)
@@ -168,62 +126,52 @@ describe("IcySwap", function () {
         );
       });
     });
+  });
 
-    describe("Swap USDC To ICY", function () {
-      it("Should transfer the right amount to caller", async function () {
-        const { usdcMock, icyMock, icySwap, secondAccount, thirdAccount } =
-          await loadFixture(deployIcySwapFixture);
+  describe("WithdrawToOwner", function () {
+    it("Should transfer the token to owner", async function () {
+      const {
+        usdcMock,
+        icyMock,
+        icySwap,
+        icyToUsdcConversionRate,
+        owner,
+        secondAccount,
+      } = await loadFixture(deployIcySwapFixture);
 
-        // prepare init balance
-        await icyMock.transfer(
-          secondAccount.address,
-          ethers.utils.parseEther("100")
-        );
+      // prepare init balance
+      await icyMock.transfer(
+        secondAccount.address,
+        ethers.utils.parseEther("100")
+      );
 
-        await usdcMock.transfer(
-          thirdAccount.address,
-          ethers.utils.parseUnits("200", 6)
-        );
+      // Top up 1000 USDC
+      const topupUsdcAmount = "1000";
+      await usdcMock.transfer(
+        icySwap.address,
+        ethers.utils.parseUnits(topupUsdcAmount, 6)
+      );
 
-        // Top up 1000 USDC
-        const topupUsdcAmount = "1000";
-        await usdcMock.approve(
-          icySwap.address,
-          ethers.utils.parseUnits(topupUsdcAmount, 6)
-        );
-        await icySwap.topUpUSDC(ethers.utils.parseUnits(topupUsdcAmount, 6));
+      // Swap icy to get usdc
+      const icyAmountIn = "100";
+      const expectedUsdcAmountOut = +icyAmountIn * +icyToUsdcConversionRate;
+      await icyMock
+        .connect(secondAccount)
+        .approve(icySwap.address, ethers.utils.parseEther(icyAmountIn));
+      await icySwap
+        .connect(secondAccount)
+        .swap(ethers.utils.parseEther(icyAmountIn));
 
-        // Swap icy to get usdc
-        await icyMock
-          .connect(secondAccount)
-          .approve(icySwap.address, ethers.utils.parseEther("100"));
-        await icySwap
-          .connect(secondAccount)
-          .swap(icyMock.address, ethers.utils.parseEther("100"));
+      expect(await usdcMock.balanceOf(secondAccount.address)).to.equal(
+        ethers.utils.parseUnits(`${expectedUsdcAmountOut}`, 6)
+      );
+      expect(await icyMock.balanceOf(secondAccount.address)).to.equal("0");
 
-        expect(await usdcMock.balanceOf(secondAccount.address)).to.equal(
-          ethers.utils.parseUnits("200", 6)
-        );
-        expect(await icyMock.balanceOf(secondAccount.address)).to.equal("0");
-
-        // Swap usdc to get icy
-        await usdcMock
-          .connect(thirdAccount)
-          .approve(icySwap.address, ethers.utils.parseUnits("200", 6));
-        await icySwap
-          .connect(thirdAccount)
-          .swap(usdcMock.address, ethers.utils.parseUnits("200", 6));
-
-        expect(await usdcMock.balanceOf(thirdAccount.address)).to.equal("0");
-        expect(await icyMock.balanceOf(thirdAccount.address)).to.equal(
-          ethers.utils.parseEther("100")
-        );
-
-        expect(await usdcMock.balanceOf(icySwap.address)).to.equal(
-          ethers.utils.parseUnits("1000", 6)
-        );
-        expect(await icyMock.balanceOf(icySwap.address)).to.equal("0");
-      });
+      const beforeOwnerIcyBalance = await icyMock.balanceOf(owner.address);
+      await icySwap.withdrawToOwner(icyMock.address);
+      expect(await icyMock.balanceOf(owner.address)).to.equal(
+        beforeOwnerIcyBalance.add(ethers.utils.parseEther(icyAmountIn))
+      );
     });
   });
 });

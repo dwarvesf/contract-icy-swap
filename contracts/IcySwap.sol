@@ -16,11 +16,11 @@ contract IcySwap is Ownable, Pausable, ReentrancyGuard {
 
     // This conversion is follow usdc decimals: 10**6
     // Let say we want 1 icy equal 2 usdc -> conversion rate should be 2 * 10**6
-    uint256 public icyToUsdcCoversionRate;
+    uint256 public icyToUsdcConversionRate;
 
     event Swap(IERC20 indexed fromToken, uint256 indexed fromAmount);
-    event TopUpUSDC(uint256 indexed amount);
     event ConversionRateChanged(uint256 conversionRate);
+    event WithdrawToOwner(IERC20 indexed token, uint256 amount);
 
     constructor(
         IERC20 _usdc,
@@ -29,50 +29,35 @@ contract IcySwap is Ownable, Pausable, ReentrancyGuard {
     ) {
         usdc = _usdc;
         icy = _icy;
-        icyToUsdcCoversionRate = _conversionRate;
-    }
-
-    modifier shouldBeValidToken(IERC20 _token) {
-        require(_token == usdc || _token == icy, "not allow token");
-        _;
+        icyToUsdcConversionRate = _conversionRate;
     }
 
     // Swap methods
-    function swap(IERC20 _fromToken, uint256 _fromAmount)
-        public
-        shouldBeValidToken(_fromToken)
-        nonReentrant
-        whenNotPaused
-    {
-        if (_fromToken == icy) {
-            uint256 toAmount = (_fromAmount * icyToUsdcCoversionRate) /
-                (10**18);
-            _swap(_fromToken, _fromAmount, usdc, toAmount);
-        } else {
-            uint256 toAmount = (_fromAmount * (10**18)) /
-                icyToUsdcCoversionRate;
-            _swap(_fromToken, _fromAmount, icy, toAmount);
-        }
-        emit Swap(_fromToken, _fromAmount);
+    function swap(uint256 _amountIn) external nonReentrant whenNotPaused {
+        uint256 amountOut = (_amountIn * icyToUsdcConversionRate) / (10**18);
+        _swap(icy, _amountIn, usdc, amountOut);
+        emit Swap(icy, _amountIn);
     }
 
     // Moderate methods
-    function topUpUSDC(uint256 _amount) public onlyOwner {
-        usdc.safeTransferFrom(msg.sender, address(this), _amount);
-        emit TopUpUSDC(_amount);
-    }
-
-    function setConversionRate(uint256 _conversionRate) public onlyOwner {
-        icyToUsdcCoversionRate = _conversionRate;
+    function setConversionRate(uint256 _conversionRate) external onlyOwner {
+        icyToUsdcConversionRate = _conversionRate;
         emit ConversionRateChanged(_conversionRate);
     }
 
-    function pause() public onlyOwner {
+    function pause() external onlyOwner {
         _pause();
     }
 
-    function unpause() public onlyOwner {
+    function unpause() external onlyOwner {
         _unpause();
+    }
+
+    function withdrawToOwner(IERC20 _token) external onlyOwner {
+        uint256 balance = _token.balanceOf(address(this));
+        require(balance > 0, "contract has no balance");
+        _token.safeTransfer(msg.sender, balance);
+        emit WithdrawToOwner(_token, balance);
     }
 
     // Internal methods
