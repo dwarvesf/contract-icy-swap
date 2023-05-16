@@ -3,13 +3,13 @@ pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
-import "./interface/IDwarvesPOCDescriptor.sol";
+import "./interface/IDwarvesNFTDescriptor.sol";
 import "./Lib/CommonType.sol";
 
-contract DPOCDescriptor is IDwarvesPOCDescriptor  {
+contract DNFTDescriptor is IDwarvesNFTDescriptor  {
 
-  function tokenURI(IDwarvesPOC dpoc, uint256 tokenId) external view returns (string memory) {
-    CommonType.ContributeInfo memory info = dpoc.getContributionInfo(tokenId);
+  function tokenURI(IDwarvesNFT nft, uint256 tokenId) external view returns (string memory) {
+    CommonType.ContributeInfo memory info = nft.getContributionInfo(tokenId);
 
     string memory image = string.concat(
         "<svg width='290' height='500' viewBox='0 0 290 500' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>",
@@ -24,7 +24,7 @@ contract DPOCDescriptor is IDwarvesPOCDescriptor  {
         "</svg>"
     );
     
-    string memory name = string.concat("Dwarves POC #", "Top 1 Brainery");
+    string memory name = string.concat("Dwarves NFT #", "Top 1 Brainery");
     string memory description = "Dwarves Proof of contribution NFT collection";
 
     string memory json = string.concat(

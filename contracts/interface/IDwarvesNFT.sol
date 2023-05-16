@@ -3,6 +3,6 @@ pragma solidity ^0.8.9;
 
 import "../Lib/CommonType.sol";
 
-interface IDwarvesPOC {
+interface IDwarvesNFT {
   function getContributionInfo(uint256 tokenId) external view returns (CommonType.ContributeInfo memory);
 }

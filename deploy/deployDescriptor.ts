@@ -2,7 +2,7 @@ import hre, { ethers } from "hardhat";
 
 async function main() {
   console.log(`deploying contract...`);
-  const Descriptor = await ethers.getContractFactory("DPOCDescriptor");
+  const Descriptor = await ethers.getContractFactory("DNFTDescriptor");
   const descriptor = await Descriptor.deploy();
   await descriptor.deployed();
   console.log(`deployed descriptor to ${descriptor.address}`);

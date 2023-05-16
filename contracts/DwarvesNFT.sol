@@ -4,18 +4,18 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./interface/IDwarvesPOCDescriptor.sol";
-import "./interface/IDwarvesPOC.sol";
+import "./interface/IDwarvesNFTDescriptor.sol";
+import "./interface/IDwarvesNFT.sol";
 import "./Lib/CommonType.sol";
 
-contract DwarvesPOC is ERC721, AccessControl, IDwarvesPOC {
+contract DwarvesNFT is ERC721, AccessControl, IDwarvesNFT {
   using Counters for Counters.Counter;
 
   // Access Control roles
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
   // Third party contracts
-  IDwarvesPOCDescriptor public descriptor;
+  IDwarvesNFTDescriptor public descriptor;
 
   // NFT state
   Counters.Counter private _tokenIdCounter;
@@ -24,7 +24,7 @@ contract DwarvesPOC is ERC721, AccessControl, IDwarvesPOC {
 
   mapping(uint256 => CommonType.ContributeInfo) public info;
 
-  constructor(IDwarvesPOCDescriptor _descriptor) ERC721("Dwarves POC", "DPOC") {
+  constructor(IDwarvesNFTDescriptor _descriptor) ERC721("Dwarves NFT", "DNFT") {
     descriptor = _descriptor;
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(MINTER_ROLE, msg.sender);
@@ -44,7 +44,7 @@ contract DwarvesPOC is ERC721, AccessControl, IDwarvesPOC {
       minting = value;
   }
 
-  function setDescriptor(IDwarvesPOCDescriptor newDescriptor) external onlyRole(DEFAULT_ADMIN_ROLE) {
+  function setDescriptor(IDwarvesNFTDescriptor newDescriptor) external onlyRole(DEFAULT_ADMIN_ROLE) {
       descriptor = newDescriptor;
   }
 

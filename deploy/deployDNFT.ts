@@ -2,16 +2,16 @@ import hre, { ethers } from "hardhat";
 
 async function main() {
   console.log(`deploying contract...`);
-  const Descriptor = await ethers.getContractFactory("DPOCDescriptor");
+  const Descriptor = await ethers.getContractFactory("DNFTDescriptor");
   const descriptor = await Descriptor.deploy();
   await descriptor.deployed();
   console.log(`deployed descriptor to ${descriptor.address}`);
 
-  const DPOC = await ethers.getContractFactory("DwarvesPOC");
-  const dpoc = await DPOC.deploy(descriptor.address);
-  await dpoc.deployed();
+  const DNFT = await ethers.getContractFactory("DwarvesNFT");
+  const dnft = await DNFT.deploy(descriptor.address);
+  await dnft.deployed();
 
-  console.log(`deployed DPOC to ${dpoc.address}`);
+  console.log(`deployed DNFT to ${dnft.address}`);
 
   console.log(`verifying descriptor contract...`);
   await hre
@@ -29,7 +29,7 @@ async function main() {
   console.log(`verifying dpoc contract...`);
   await hre
     .run("verify:verify", {
-      address: dpoc.address,
+      address: dnft.address,
       constructorArguments: [descriptor.address],
     })
     .then(() => {
